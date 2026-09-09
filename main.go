@@ -1,19 +1,26 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Location struct {
-	DeviceID  string  `json:"device_id"`
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	DeviceID   string    `json:"device_id"`
+	DeviceName string    `json:"device_name"`
+	Latitude   float64   `json:"latitude"`
+	Longitude  float64   `json:"longitude"`
+	RecordedAt time.Time `json:"recorded_at"`
 }
 
 var locations = []Location{}
+var pool *pgxpool.Pool
+var ctx = context.Background()
 
 func main() {
 	r := gin.Default()

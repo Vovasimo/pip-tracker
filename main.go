@@ -4,10 +4,12 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 type Location struct {
@@ -19,10 +21,32 @@ type Location struct {
 }
 
 var locations = []Location{}
-var pool *pgxpool.Pool
-var ctx = context.Background()
+var db *pgxpool.Pool
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found")
+	}
+
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Fatal("DATABASE_URL is not set")
+	}
+
+	db, err := pgxpool.New(context.Background(), databaseURL)
+	if err != nil {
+		log.Fatal("Unable to connect to database:", err)
+	}
+	defer db.Close()
+
+	err = db.Ping(context.Background())
+	if err != nil {
+		log.Fatal("Database ping failed:", err)
+	}
+
+	log.Println("Connected to PostgreSQL")
+
 	r := gin.Default()
 
 	r.GET("/devices", getDevices)
